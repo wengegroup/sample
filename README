@@ -1,0 +1,229 @@
+# 一、获取数据相关API使用规范
+通知，闻海更新域名，旧的域名在未来不再支持，请用户切换到新域名
+新域名：
+常用域名：http://wenhai.wengegroup.com/wenhaiFt-api
+备用域名：http://wenhai.wengegroup.com/wenhaiFt-api-test
+
+旧域名：
+常用域名：http://ft.wengetech.com:10001/wenhaiFt-api
+备用域名：http://ft.wengetech.com:10001/wenhaiFt-api-test
+
+1. 每位用户有专属自己的用户Code
+2. AES使用的加密方式为WH_Search_ECRule
+
+## 1.1获取认证token
+
+调用地址：[域名/openAPI/search/getAccessToken]
+请求方式：POST
+返回类型：JSON
+认证信息格式：AES(用户CODE_时间戳)
+
+用AES加密，加密规则需要授权获取，用户CODE是用户唯一标识， AES加密方式可参考附件
+认证方式：将认证信息放到请求Header中的Authorization中
+
+请求示例：
+
+
+***\*返回数据格式示例：\****
+
+```json
+{
+	"status": 1,
+	"data": null,
+	"msg": "认证成功！",
+	"access_token": "74d5ad7d708f87007231713a18336d28"
+}
+```
+
+**备注：token有效期为3天， 3天需重新获取token**
+
+## 1.2 根据token获取数据
+
+调用地址: [域名/openAPI/search/remoteSearchInfosByConditions ]
+请求方式: POST
+
+返回类型: JSON
+
+认证信息格式:AES({"access_token":access_token,"data":"检索条件"})
+
+其中加密串是access_token与搜索条件组成的json串, 用AES加密，加密规则同上
+
+***\*检索条件示例\****：
+
+(1) 自定义检索条件
+用户常用检索条件
+```json
+{
+	"pageNo": 1,  //页码
+
+	"pageSize": 10,//每页条数
+
+	"keywords": [{
+				"not": [],//不包含
+				"must": [],//必须包含
+				"any": ["北京2022", "北京冬奥会", "2022冬奥会", "2022年冬奥会"]//包含任意
+				}, {
+				"not": [],
+				"must": ["2022", "冬奥会"],
+				"any": []
+				}], //未来将废弃，用searchFormula替换
+
+	"searchFormula": [
+		"(北京2022|北京冬奥会|2022冬奥会|2022年冬奥会)"
+        ,"(中科闻歌)"
+		],//优化，公式规则，
+			//1. 公式可包括"与"，"或"，"非"的关系，用"&"代表"与"，"|"代表"或"，"!"代表"非"；
+			//2. 每个公式中的每组关键词必须以"()"包含，不支持2级括号及1组以上配置；
+			//3. 如果输入多组关键词，则关键词间是"与关系"；如果输入多组公式，则多组公式间是"或关系"；回车输入下一组关键词或公式；
+			//示例：(西安&无人机)&(乱码|尬舞|1374|失误|演砸|亿航|出岔)!(据新华社西安)     (xian&drone)&(fail|failure|1374)；
+
+
+	"language": ["1","6"],// 语种，1中文，2 英语， 5俄语，6西班牙语，7 法语，8阿拉伯语，9 葡萄牙语,,可多选，不传表示全部
+	"keywordsPosion": ["1"],// 关键词检索范围，1标题，2正文, 可多选，不传表示全部
+	"dataSource": ["7","10"]//数据渠道  1. Twitter 2. Facebook 3. 照片墙 4. 新闻 5. 博客 6. 论坛 7. 电子报纸 8. 微信 9. 微博 10. App 11. Youtube 12. 电视节目 13. 自定义 14 短视频（快手+抖音）15 Telegram,可多选,不传表示全部
+	"startTime":"2018-09-13 00:00:00",//发布开始时间
+	"endTime":"2018-09-20 23:59:59",  //发布结束时间
+	"mediaInfo": {"10":[{"uid":"新华社","name":"新华社"}]}, //指定媒体。 数字表示信息渠道， 数据渠道  1. Twitter 2. Facebook 3. 照片墙 4. 新闻 5. 博客 6. 论坛 7. 电子报纸 8. 微信 9. 微博 10. App 11. Youtube 12. 电视节目 13. 自定义 14 短视频（快手+抖音）15 Telegram；同时， uid和name一致，表示媒体名称
+}
+```
+
+其他不常用检索条件
+```json
+{
+	"region": ["0"],// 0 境内，1境外， 不传表示全部
+	"category": ["社会","教育"],//类型，社会，教育，时政，经济，军事等，不传表示全部
+	"citys":["北京市","天津市"],  //省市,可多选,不传表示全部
+	"country":["中国","美国"],//国家名
+	"emotion": ["1","2"],  //情感  1正面，2负面 ，3中立 ,可多选，不传表示全部
+	"hosts":["wn.com","sina.com.tw"] //指定域名，比如wn.com是世界新闻网，sina.com.tw是新浪网其中的一个域名
+	"subHosts":[""], //搜索站点的二级域名host数组, 例如business.sohu.com
+	"site":[""], //搜索站点的名称，微信则是微信公众号名称
+	"startInsertTime":"2018-09-13 00:00:00",  //入库开始时间
+	"startInsertTime":"2018-09-20 23:59:59",  //入库结束时间
+	"isDuplicate":0,  // 设置内容排重  0 不排重  1 排重， 不传 默认不排重
+}
+```
+
+
+返回数据结果
+
+```json
+{
+	"message": "成功",
+	"status": 1,  //1 成功 0不成功
+	"total": 209678,                 //信息总量
+	"pageNo": 1,                   //第几页
+	"pageSize": 30,                 //每页条数
+	"data": [{                      //信息
+	"entityPeoList": null, // 实体抽取人
+	"region": null,           //地域
+	"dataSource": "news_info", //数据的来源种类
+	"entityOrgList": null, // 实体抽取组织
+	"data": null, //保存其他数据
+	"pictures": [],// 图片URL #分隔
+	"collection": "0", //我的收藏 0 没收藏 , 1 收藏
+	"sourceUrl": "http://edu.qianlong.com/2018/0830/2795184.shtml",   //源链接
+	"_type": "major_info_201808",//索引类型
+	"hitStence": ["如今北京即将再度迎来<span class="marke-red">冬奥会</span>"],    //命中句
+	"author": "",  //作者
+	"title": "今年《开学第一课》聚焦"创造"",   //标题
+	"insertTime": "2018-08-30 17:37:51",  //插入时间
+	"polarity": "1",  // 情感 1 正 2 负 3 中
+	"summaries": "随着科技发展和社会进步，我们的生活越来越方便，世界也变得越来越神奇。我们看到了围棋...",  // 文章摘要
+	"tags": null, //文章标签
+	"interactionNum": null, //互动量
+	"host": "qianlong.com", //站点host
+	"mediaLevel": null, // 媒体级别
+	"ttransmit": null, // 转载量
+	"transNum": "1",  //传播量>0 表示有相似文章
+	"simpleTime": "3小时前", // 简化时间
+	"picture": null, //文章图片
+	"content": "<p class="infoContent">随着科技发展和社会进步，我们的生活越来越方便，世界也变得越来越神奇...",    //文章内容
+	"commentNum": null,   //评论量
+	"pubtime": "2018-08-30 17:04:00",  //发布时间
+	"category": "[\"教育\"]",  //文章类别
+	"likeNum": null,  //点赞量
+	"entityAddList": null, // 实体抽取地
+	"reviewCount": null,   //阅读量
+	"gid": 4043411998360320, //数据在数据库中的游标
+	"uuid": "ac3c77da1d971ca49f3262bbecb33454", //查找相似文章的uuid
+	"language": 1 //// 语种，1中文，2 英语， 5俄语，6西班牙语，7 法语，8阿拉伯语，9 葡萄牙语
+	}]
+}
+```
+
+## 1.2 根据数据的sourceURL获取数据的其他信息
+
+调用地址: [域名/openAPI/search/remoteSearchInfosByConditions ]
+请求方式: POST
+
+返回类型: JSON
+
+认证信息格式:AES({"access_token":access_token,"data":"检索条件"})
+
+其中加密串是access_token与搜索条件组成的json串, 用AES加密，加密规则同上
+
+***\*检索条件示例\****：
+
+(1) 自定义检索条件
+用户常用检索条件
+```json
+{
+	"pageNo": 1,  //页码
+
+	"pageSize": 10,//每页条数
+
+	"startTime":"2018-09-13 00:00:00",//发布开始时间，必填
+
+	"endTime":"2018-09-20 23:59:59",  //发布结束时间，必填
+
+	 "'sourceURL':['http://view.inews.qq.com/a/20190901V0I13C00','https://ishare.ifeng.com/c/s/v002RO0K7G2zvD6ZREpJOAkS5tDsw7IkMUEOxBll-_WSkitI__']"   //数据的sourceURL,可以传入多个
+}
+```
+
+返回数据结果
+
+```json
+{
+	"message": "成功",
+	"status": 1,  //1 成功 0不成功
+	"total": 209678,                 //信息总量
+	"pageNo": 1,                   //第几页
+	"pageSize": 30,                 //每页条数
+	"data": [{                      //信息
+	"entityPeoList": null, // 实体抽取人
+	"region": null,           //地域
+	"dataSource": "news_info", //数据的来源种类
+	"entityOrgList": null, // 实体抽取组织
+	"data": null, //保存其他数据
+	"pictures": [],// 图片URL #分隔
+	"collection": "0", //我的收藏 0 没收藏 , 1 收藏
+	"sourceUrl": "http://edu.qianlong.com/2018/0830/2795184.shtml",   //源链接
+	"_type": "major_info_201808",//索引类型
+	"hitStence": ["如今北京即将再度迎来<span class="marke-red">冬奥会</span>"],    //命中句
+	"author": "",  //作者
+	"title": "今年《开学第一课》聚焦"创造"",   //标题
+	"insertTime": "2018-08-30 17:37:51",  //插入时间
+	"polarity": "1",  // 情感 1 正 2 负 3 中
+	"summaries": "随着科技发展和社会进步，我们的生活越来越方便，世界也变得越来越神奇。我们看到了围棋...",  // 文章摘要
+	"tags": null, //文章标签
+	"interactionNum": null, //互动量
+	"host": "qianlong.com", //站点host
+	"mediaLevel": null, // 媒体级别
+	"ttransmit": null, // 转载量
+	"transNum": "1",  //传播量>0 表示有相似文章
+	"simpleTime": "3小时前", // 简化时间
+	"picture": null, //文章图片
+	"content": "<p class="infoContent">随着科技发展和社会进步，我们的生活越来越方便，世界也变得越来越神奇...",    //文章内容
+	"commentNum": null,   //评论量
+	"pubtime": "2018-08-30 17:04:00",  //发布时间
+	"category": "[\"教育\"]",  //文章类别
+	"likeNum": null,  //点赞量
+	"entityAddList": null, // 实体抽取地
+	"reviewCount": null,   //阅读量
+	"gid": 4043411998360320, //数据在数据库中的游标
+	"uuid": "ac3c77da1d971ca49f3262bbecb33454", //查找相似文章的uuid
+	"language": 1 //// 语种，1中文，2 英语， 5俄语，6西班牙语，7 法语，8阿拉伯语，9 葡萄牙语
+	}]
+}
+```

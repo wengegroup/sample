@@ -6,8 +6,6 @@ import org.apache.http.util.EntityUtils;
 import wg.product.utils.AESEncrptUtils3;
 import wg.product.utils.HttpUtilsV2;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -19,10 +17,15 @@ public class RequestUtils {
 		return result;
 	}
 
-	public static JSONObject getAnalysisTokenAccesstokenJson() {
+	public static JSONObject getAnalysisTokenAccessTokenJson() {
 		JSONObject obj = RequestUtils.getRequestJson("access_token", RequestConfig.ANALYSIS_ACCESS_TOKEN_INFO);
 		return obj;
 	}
+	public static JSONObject getSearchTokenAccessTokenJson() {
+		JSONObject obj = RequestUtils.getRequestJson("access_token", RequestConfig.SEARCH_ACCESS_TOKEN_INFO);
+		return obj;
+	}
+
 
 	public static String request(String encodeRules, String path, String requestMethod, String authorization) {
 		String encontent = "";

@@ -18,7 +18,7 @@ public class TestGetData {
 		// 定义好请求的json格式
 		String path = "/openAPI/analysis/remoteSearchInfosByConditions";
 		String method = "POST";
-		JSONObject obj = RequestUtils.getAnalysisTokenAccesstokenJson();
+		JSONObject obj = null;//RequestUtils.getAnalysisTokenAccesstokenJson();
 		//检索条件
 		String condition = "{" +
 				" \"startTime\":\"2019-10-01 00:00:00\"," +
